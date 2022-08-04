@@ -17,6 +17,8 @@ jobs:
         run: |
           yarn run build:export
           touch out/.nojekyll
+        env:
+          SUB_DIRECTORY: /norireco
       - name: deploy
         uses: peaceiris/actions-gh-pages@v3.6.4
         with:
