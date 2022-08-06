@@ -1,6 +1,7 @@
 import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useMemo, useCallback, useState } from 'react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 const BR_SYM_HR_NAMES = [
   'sym1_1st',
@@ -36,6 +37,7 @@ const BR_SYM_FG_NAMES = [
 
 const Create: NextPage = () => {
   const router = useRouter();
+  const { localStorage } = useLocalStorage();
   const name = useMemo(() => {
     return router.query.name;
   }, [router]);
@@ -56,6 +58,7 @@ const Create: NextPage = () => {
   const onSubmit = useCallback(
     (e: React.SyntheticEvent) => {
       e.preventDefault();
+      if (localStorage === undefined) return;
       const target = e.target as any;
       const result: any = { name: name, instrument: instrument, musicSet: musicSet, partList: {} };
       if (instrument === 'ホルン') {
@@ -70,7 +73,7 @@ const Create: NextPage = () => {
       localStorage.setItem('result', JSON.stringify(result));
       router.push('/result');
     },
-    [name, instrument, musicSet, router],
+    [name, instrument, musicSet, router, localStorage],
   );
   return (
     <>

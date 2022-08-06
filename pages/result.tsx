@@ -1,12 +1,16 @@
 import type { NextPage } from 'next';
 import { useMemo } from 'react';
 import classnames from 'classnames';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 const Result: NextPage = () => {
+  const { localStorage } = useLocalStorage();
   const result = useMemo<any>(() => {
+    if (localStorage === undefined) return undefined;
     const resultString = localStorage.getItem('result');
     return resultString != null ? JSON.parse(resultString) : {};
-  }, []);
+  }, [localStorage]);
+  if (result === undefined) return null;
   return (
     <>
       <h1 className='text-center'>{result.name} さんの乗りレコ</h1>
@@ -78,6 +82,11 @@ const Result: NextPage = () => {
         <button type='button' className='btn btn-success'>
           シェアする(TBD)
         </button>
+      </div>
+      <div className='mt-5'>
+        <a href='https://musig.net' target='_blank' rel='noreferrer'>
+          詳しく記録したい方はみゅーぐも！
+        </a>
       </div>
     </>
   );
