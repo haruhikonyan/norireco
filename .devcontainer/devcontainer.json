@@ -15,12 +15,29 @@
 		// Configure properties specific to VS Code.
 		"vscode": {
 			// Set *default* container specific settings.json values on container create.
-			"settings": {},
+			"settings": {
+				"editor.tabSize": 2,
+				"files.insertFinalNewline": true,
+				"files.trimFinalNewlines": true,
+			
+				// The default end of line character.
+				"files.eol": "\n",
+			
+				// for vscode-eslint
+				"editor.defaultFormatter": "esbenp.prettier-vscode",
+				"editor.formatOnSave": true,
+				"editor.codeActionsOnSave": {
+					"source.fixAll.eslint": true
+				}
+			},
 			
 			// Add the IDs of extensions you want installed when the container is created.
 			"extensions": [
-				"dbaeumer.vscode-eslint"
-			]
+				"dbaeumer.vscode-eslint",
+				"eamodio.gitlens",
+				"mhutchie.git-graph",
+				"esbenp.prettier-vscode"
+			],
 		}
 	},
 
@@ -44,10 +61,5 @@
 	"postCreateCommand": "yarn install",
 
 	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-	"remoteUser": "node",
-	"portsAttributes": {
-		"3001": {
-			"label": "3000"
-		}
-	}
+	"remoteUser": "node"
 }
