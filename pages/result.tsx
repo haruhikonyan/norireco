@@ -1,9 +1,8 @@
 import type { NextPage } from 'next';
 import { useCallback, useMemo, useState } from 'react';
-import { useRouter } from 'next/router';
-import classnames from 'classnames';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { compress } from '../lib/stringCompress';
+import PartList from '../component/PartList';
 
 const Result: NextPage = () => {
   const [shareURL, setShareURL] = useState<string>();
@@ -27,68 +26,7 @@ const Result: NextPage = () => {
       <h1 className='text-center'>{result.name} さんの乗りレコ</h1>
       <h2 className='text-center'>{result.musicSet}</h2>
       <h3 className='text-center'>{result.instrument}</h3>
-      <p className='mt-3'>交響曲第1番</p>
-      <div className='d-flex gap-2'>
-        {Object.entries(result.partList)
-          .filter(([part, _]) => {
-            return part.includes('sym1');
-          })
-          .map(([part, bool]) => {
-            const label = part.split('_')[1];
-            return (
-              <span key={part} className={classnames({ 'text-muted': !bool }, { 'fw-bold': bool })}>
-                {label}
-              </span>
-            );
-          })}
-      </div>
-
-      <p className='mt-3'>交響曲第2番</p>
-      <div className='d-flex gap-2'>
-        {Object.entries(result.partList)
-          .filter(([part, _]) => {
-            return part.includes('sym2');
-          })
-          .map(([part, bool]) => {
-            const label = part.split('_')[1];
-            return (
-              <span key={part} className={classnames({ 'text-muted': !bool }, { 'fw-bold': bool })}>
-                {label}
-              </span>
-            );
-          })}
-      </div>
-      <p className='mt-3'>交響曲第3番</p>
-      <div className='d-flex gap-2'>
-        {Object.entries(result.partList)
-          .filter(([part, _]) => {
-            return part.includes('sym3');
-          })
-          .map(([part, bool]) => {
-            const label = part.split('_')[1];
-            return (
-              <span key={part} className={classnames({ 'text-muted': !bool }, { 'fw-bold': bool })}>
-                {label}
-              </span>
-            );
-          })}
-      </div>
-      <p className='mt-3'>交響曲第4番</p>
-      <div className='d-flex gap-2'>
-        {Object.entries(result.partList)
-          .filter(([part, _]) => {
-            return part.includes('sym4');
-          })
-          .map(([part, bool]) => {
-            const label = part.split('_')[1];
-            return (
-              <span key={part} className={classnames({ 'text-muted': !bool }, { 'fw-bold': bool })}>
-                {label}
-              </span>
-            );
-          })}
-      </div>
-
+      <PartList partList={result.partList} />
       {shareURL ? (
         <div className='form-floating mt-3'>
           <textarea
