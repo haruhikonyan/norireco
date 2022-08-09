@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { compress } from '../lib/stringCompress';
 import PartList from '../component/PartList';
+import CopyClipboard from '../component/CopyClipboard';
 
 const Result: NextPage = () => {
   const [shareURL, setShareURL] = useState<string>();
@@ -28,14 +29,17 @@ const Result: NextPage = () => {
       <h3 className='text-center'>{result.instrument}</h3>
       <PartList partList={result.partList} />
       {shareURL ? (
-        <div className='form-floating mt-3'>
-          <textarea
-            className='form-control'
-            value={shareURL}
-            id='shareURL'
-            style={{ height: '400px' }}
-          />
-          <label htmlFor='shareURL'>URLをコピーして結果をシェア</label>
+        <div className='mt-3'>
+          <CopyClipboard copyText={shareURL} />
+          <div className='form-floating mt-2'>
+            <textarea
+              className='form-control'
+              value={shareURL}
+              id='shareURL'
+              style={{ height: '400px' }}
+            />
+            <label htmlFor='shareURL'>URLをコピーして結果をシェア</label>
+          </div>
         </div>
       ) : (
         <div className='text-end'>
