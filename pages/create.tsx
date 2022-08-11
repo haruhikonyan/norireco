@@ -1,4 +1,5 @@
 import type { NextPage } from 'next';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useMemo, useCallback, useState, useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
@@ -65,6 +66,7 @@ const MASTER: any = {
 const Create: NextPage = () => {
   const router = useRouter();
   const { localStorage } = useLocalStorage();
+  const [stackedMusicSetPart, setStackedMusicSetPart] = useState<string[]>([]);
   const name = useMemo(() => {
     return router.query.name;
   }, [router]);
@@ -93,17 +95,38 @@ const Create: NextPage = () => {
 
   const displayMusicSet = useMemo(() => MASTER[musicSet][instrument], [instrument, musicSet]);
 
+  const savedRsult = useCallback(() => {
+    if (localStorage === undefined) return undefined;
+    const resultString = localStorage.getItem('result');
+    return resultString != null ? JSON.parse(resultString) : undefined;
+  }, [localStorage]);
+
+  useEffect(() => {
+    const result = savedRsult();
+    if (result == null) return;
+    setStackedMusicSetPart(
+      Object.entries(result.musicSet)
+        .map(([musicSet, instruments]) =>
+          Object.keys(instruments as any).map((i) => `${musicSet}: ${i}`),
+        )
+        .flat(),
+    );
+  }, [savedRsult]);
   const onSubmit: SubmitHandler<any> = useCallback(
     (data) => {
+      console.log(data);
       if (localStorage === undefined) return;
-      const result: any = {
-        name: name,
-        initSet: {
+      const result = savedRsult() ?? {};
+      if (Object.keys(result).length === 0) {
+        result.name = name;
+        result.initSet = {
           musicSet,
           instrument,
-        },
-        musicSet: { [musicSet]: { [instrument]: {} } },
-      };
+        };
+      }
+      if (!result.musicSet) result.musicSet = { [musicSet]: { [instrument]: {} } };
+      if (!result.musicSet[musicSet]) result.musicSet[musicSet] = { [instrument]: {} };
+      if (!result.musicSet[musicSet][instrument]) result.musicSet[musicSet][instrument] = {};
       Object.entries(displayMusicSet).forEach(([title, parts]) => {
         result.musicSet[musicSet][instrument][title] = {};
         (parts as string[]).forEach((p) => {
@@ -111,9 +134,11 @@ const Create: NextPage = () => {
         });
       });
       localStorage.setItem('result', JSON.stringify(result));
-      router.push('/result');
+      if (!stackedMusicSetPart.includes(`${musicSet}: ${instrument}`)) {
+        setStackedMusicSetPart([...stackedMusicSetPart, `${musicSet}: ${instrument}`]);
+      }
     },
-    [localStorage, name, instrument, musicSet, displayMusicSet, router],
+    [localStorage, savedRsult, musicSet, instrument, displayMusicSet, stackedMusicSetPart, name],
   );
   return (
     <>
@@ -151,11 +176,33 @@ const Create: NextPage = () => {
           </>
         ))}
         <div className='d-grid mt-3'>
-          <button type='submit' className='btn btn-primary'>
-            決定
+          <button type='submit' className='btn btn-success'>
+            追加
           </button>
         </div>
       </form>
+      {stackedMusicSetPart.map((s) => (
+        <p key={s}>{s}</p>
+      ))}
+      {stackedMusicSetPart.length > 0 && (
+        <div className='text-end'>
+          <button
+            type='button'
+            onClick={() => {
+              setStackedMusicSetPart([]);
+              localStorage?.removeItem('result');
+            }}
+            className='btn btn-danger btn-sm'
+          >
+            すべてクリア
+          </button>
+        </div>
+      )}
+      <Link href='/result'>
+        <div className='d-grid mt-3'>
+          <a className='btn btn-primary'>結果表示</a>
+        </div>
+      </Link>
     </>
   );
 };
