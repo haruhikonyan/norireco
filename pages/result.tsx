@@ -1,15 +1,17 @@
 import type { NextPage } from 'next';
 import { useCallback, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { compress } from '../lib/stringCompress';
 import PartList from '../component/PartList';
 import CopyClipboard from '../component/CopyClipboard';
+import MusicSetSelector from '../component/MusicSetSelector';
 
 const Result: NextPage = () => {
   const [shareURL, setShareURL] = useState<string>();
   const { localStorage } = useLocalStorage();
   const result = useMemo<any>(() => {
-    if (localStorage === undefined) return undefined;
+    if (localStorage === undefined) return {};
     const resultString = localStorage.getItem('result');
     return resultString != null ? JSON.parse(resultString) : {};
   }, [localStorage]);
@@ -21,13 +23,11 @@ const Result: NextPage = () => {
     setShareURL(`${location.origin}/norireco/share?r=${compress(resultString)}`);
   }, [localStorage]);
 
-  if (result === undefined) return null;
+  if (Object.keys(result).length === 0) return null;
   return (
     <>
       <h1 className='text-center'>{result.name} さんの乗りレコ</h1>
-      <h2 className='text-center'>{result.musicSet}</h2>
-      <h3 className='text-center'>{result.instrument}</h3>
-      <PartList partList={result.partList} />
+      <MusicSetSelector musicSet={result.musicSet} initSet={result.initSet} />
       {shareURL ? (
         <div className='mt-3'>
           <CopyClipboard copyText={shareURL} />

@@ -1,6 +1,7 @@
 import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
-import { useMemo, useCallback, useState } from 'react';
+import { useMemo, useCallback, useState, useEffect } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 const MASTER: any = {
@@ -67,36 +68,46 @@ const Create: NextPage = () => {
   const name = useMemo(() => {
     return router.query.name;
   }, [router]);
+  const { register, handleSubmit, watch, setValue } = useForm<any>({
+    defaultValues: {
+      musicSet: 'ブラームス交響曲セット',
+      instrument: 'ホルン',
+    },
+    shouldUnregister: true,
+  });
 
-  const [musicSet, setMusicSet] = useState('ブラームス交響曲セット');
-  const [instrument, setInstrument] = useState('ホルン');
+  const musicSet = watch('musicSet');
+  const instrument = watch('instrument');
+
+  useEffect(() => {
+    setValue('instrument', '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [musicSet]);
+
+  useEffect(() => {
+    // TODO result にデータがあれば戻す、なければリセット
+  }, [instrument]);
 
   const musicSeTitletList = useMemo(() => Object.keys(MASTER), []);
   const selectableInstrumentList = useMemo(() => Object.keys(MASTER[musicSet]), [musicSet]);
 
   const displayMusicSet = useMemo(() => MASTER[musicSet][instrument], [instrument, musicSet]);
 
-  const onChangeMusicSet = useCallback((e: React.FormEvent<HTMLSelectElement>) => {
-    e.preventDefault();
-    setInstrument('');
-    setMusicSet(e.currentTarget.value);
-  }, []);
-
-  const onChangeInstrment = useCallback((e: React.FormEvent<HTMLSelectElement>) => {
-    e.preventDefault();
-    setInstrument(e.currentTarget.value);
-  }, []);
-
-  const onSubmit = useCallback(
-    (e: React.SyntheticEvent) => {
-      e.preventDefault();
+  const onSubmit: SubmitHandler<any> = useCallback(
+    (data) => {
       if (localStorage === undefined) return;
-      const target = e.target as any;
-      const result: any = { name: name, instrument: instrument, musicSet: musicSet, partList: {} };
+      const result: any = {
+        name: name,
+        initSet: {
+          musicSet,
+          instrument,
+        },
+        musicSet: { [musicSet]: { [instrument]: {} } },
+      };
       Object.entries(displayMusicSet).forEach(([title, parts]) => {
-        result.partList[title] = {};
+        result.musicSet[musicSet][instrument][title] = {};
         (parts as string[]).forEach((p) => {
-          result.partList[title][p] = target[`${title}_${p}`].checked;
+          result.musicSet[musicSet][instrument][title][p] = data[`${title}_${p}`];
         });
       });
       localStorage.setItem('result', JSON.stringify(result));
@@ -107,21 +118,16 @@ const Create: NextPage = () => {
   return (
     <>
       <h1 className='text-center'>{name} さんの乗り番入力</h1>
-      <form onSubmit={onSubmit}>
-        <select className='form-select' aria-label='musicSet' onChange={onChangeMusicSet}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <select className='form-select' aria-label='musicSet' {...register('musicSet')}>
           {musicSeTitletList.map((t) => (
             <option key={t} value={t}>
               {t}
             </option>
           ))}
         </select>
-        <select
-          className='form-select'
-          aria-label='instrument'
-          onChange={onChangeInstrment}
-          value={instrument}
-        >
-          <option value=''>選択してください</option>
+        <select className='form-select' aria-label='instrument' {...register('instrument')}>
+          <option value=''>楽器を選択</option>
           {selectableInstrumentList.map((i) => (
             <option key={i} value={i}>
               {i}
@@ -135,7 +141,7 @@ const Create: NextPage = () => {
               const k = `${title}_${p}`;
               return (
                 <div key={k} className='form-check form-check-inline'>
-                  <input className='form-check-input' type='checkbox' value={k} id={k} name={k} />
+                  <input className='form-check-input' type='checkbox' {...register(k)} name={k} />
                   <label className='form-check-label' htmlFor={k}>
                     {p}
                   </label>
