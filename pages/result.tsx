@@ -67,6 +67,11 @@ const Result: NextPage = () => {
         </div>
       )}
       <div className='mt-5'>
+        <Link href={`create?name=${result.name}`}>
+          <a>別の乗りレコを作る</a>
+        </Link>
+      </div>
+      <div className='mt-2'>
         <Link href='/list'>
           <a>作った乗りレコリスト</a>
         </Link>

@@ -1,9 +1,18 @@
 import type { NextPage } from 'next';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 const Home: NextPage = () => {
   const router = useRouter();
+  const { localStorage } = useLocalStorage();
+  const result = useMemo<any>(() => {
+    if (localStorage === undefined) return {};
+    const resultString = localStorage.getItem('result');
+    return resultString != null ? JSON.parse(resultString) : {};
+  }, [localStorage]);
+
   const onSubmit = useCallback(
     (e: React.SyntheticEvent) => {
       e.preventDefault();
@@ -38,6 +47,13 @@ const Home: NextPage = () => {
           </button>
         </div>
       </form>
+      {result.name && (
+        <div className='mt-3'>
+          <Link href={`/create?name=${result.name}`}>
+            <a>{result.name} さんとして続きを作る</a>
+          </Link>
+        </div>
+      )}
     </div>
   );
 };

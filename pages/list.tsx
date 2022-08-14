@@ -36,16 +36,23 @@ const List: NextPage = () => {
           );
         }),
       )}
-      <button
-        type='button'
-        onClick={() => {
-          localStorage?.clear();
-          router.push('/');
-        }}
-        className='btn btn-danger mt-5'
-      >
-        全て削除する
-      </button>
+      <div className='mt-3 text-center'>
+        <Link href={`create?name=${result.name}`}>
+          <a>乗りレコを作る</a>
+        </Link>
+      </div>
+      <div className='text-end mt-5'>
+        <button
+          type='button'
+          onClick={() => {
+            localStorage?.clear();
+            router.push('/');
+          }}
+          className='btn btn-danger mt-5'
+        >
+          全て削除する
+        </button>
+      </div>
     </>
   );
 };
