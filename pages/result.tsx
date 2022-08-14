@@ -28,9 +28,12 @@ const Result: NextPage = () => {
     const resultString = localStorage.getItem('result');
     if (resultString == null) return;
     setShareURL(
-      `${location.origin}/norireco/share?r=${compress(
-        resultString,
-      )}&l=${`${musicSet}: ${instrument}`}`,
+      encodeURI(
+        // TODO: norireco ってのは github page の時だけつけるようにする
+        `${location.origin}/norireco/share?r=${compress(
+          resultString,
+        )}&l=${`${musicSet}: ${instrument}`}`,
+      ),
     );
   }, [instrument, localStorage, musicSet]);
 
