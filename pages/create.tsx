@@ -1,95 +1,50 @@
-import { debug } from 'console';
 import type { NextPage } from 'next';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useMemo, useCallback, useState, useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-
-const MASTER: any = {
-  ブラームス交響曲セット: {
-    ファゴット: {
-      交響曲第1番: ['1st', '2nd', 'CFg'],
-      交響曲第2番: ['1st', '2nd'],
-      交響曲第3番: ['1st', '2nd', 'CFg'],
-      交響曲第4番: ['1st', '2nd', 'CFg'],
-    },
-    ホルン: {
-      交響曲第1番: ['1st', '2nd', '3rd', '4th'],
-      交響曲第2番: ['1st', '2nd', '3rd', '4th'],
-      交響曲第3番: ['1st', '2nd', '3rd', '4th'],
-      交響曲第4番: ['1st', '2nd', '3rd', '4th'],
-    },
-    トランペット: {
-      交響曲第1番: ['1st', '2nd'],
-      交響曲第2番: ['1st', '2nd'],
-      交響曲第3番: ['1st', '2nd'],
-      交響曲第4番: ['1st', '2nd'],
-    },
-  },
-  ベートーヴェン交響曲セット: {
-    ファゴット: {
-      交響曲第1番: ['1st', '2nd'],
-      交響曲第2番: ['1st', '2nd'],
-      交響曲第3番: ['1st', '2nd'],
-      交響曲第4番: ['1st', '2nd'],
-      交響曲第5番: ['1st', '2nd', 'CFg'],
-      交響曲第6番: ['1st', '2nd'],
-      交響曲第7番: ['1st', '2nd'],
-      交響曲第8番: ['1st', '2nd'],
-      交響曲第9番: ['1st', '2nd', 'CFg'],
-    },
-    トランペット: {
-      交響曲第1番: ['1st', '2nd'],
-      交響曲第2番: ['1st', '2nd'],
-      交響曲第3番: ['1st', '2nd'],
-      交響曲第4番: ['1st', '2nd'],
-      交響曲第5番: ['1st', '2nd'],
-      交響曲第6番: ['1st', '2nd'],
-      交響曲第7番: ['1st', '2nd'],
-      交響曲第8番: ['1st', '2nd'],
-      交響曲第9番: ['1st', '2nd'],
-    },
-    ホルン: {
-      交響曲第1番: ['1st', '2nd'],
-      交響曲第2番: ['1st', '2nd'],
-      交響曲第3番: ['1st', '2nd', '3rd'],
-      交響曲第4番: ['1st', '2nd'],
-      交響曲第5番: ['1st', '2nd'],
-      交響曲第6番: ['1st', '2nd'],
-      交響曲第7番: ['1st', '2nd'],
-      交響曲第8番: ['1st', '2nd'],
-      交響曲第9番: ['1st', '2nd', '3rd', '4th'],
-    },
-  },
-};
+import { useMaster } from '../hooks/useMaster';
 
 const Create: NextPage = () => {
   const router = useRouter();
+  const { index, master, fetchMaster } = useMaster();
   const { localStorage } = useLocalStorage();
   const name = useMemo(() => {
     return router.query.name;
   }, [router]);
   const { register, handleSubmit, watch, setValue } = useForm<any>({
-    defaultValues: {
-      musicSet: 'ブラームス交響曲セット',
-    },
     shouldUnregister: true,
   });
 
   const musicSet = watch('musicSet');
   const instrument = watch('instrument');
 
-  const musicSeTitletList = useMemo(() => Object.keys(MASTER), []);
-  const selectableInstrumentList = useMemo(
-    () => (musicSet == null ? [] : Object.keys(MASTER[musicSet])),
-    [musicSet],
+  const musicSeTitletList = useMemo(() => Object.keys(index), [index]);
+
+  const [selectableInstrumentList, setSelectableInstrumentList] = useState<string[]>([]);
+  const [displayMusicSet, setDisplayMusicSet] = useState<any>({});
+
+  const onChangeMusicSet = useCallback(
+    async (musicSet: string) => {
+      const instrumentsObject = master[musicSet];
+      if (instrumentsObject) {
+        setSelectableInstrumentList(Object.keys(instrumentsObject));
+      } else {
+        const fm = await fetchMaster(index[musicSet]);
+        setSelectableInstrumentList(Object.keys(fm[musicSet]));
+      }
+      setDisplayMusicSet({});
+      setValue('instrument', '');
+    },
+    [fetchMaster, index, master, setValue],
   );
 
-  const displayMusicSet = useMemo(
-    () => (instrument == null || musicSet == null ? {} : MASTER[musicSet][instrument]),
-    [instrument, musicSet],
-  );
+  useEffect(() => {
+    if (Object.keys(index).length > 0) {
+      setValue('musicSet', 'ブラームス交響曲セット');
+      onChangeMusicSet('ブラームス交響曲セット');
+    }
+  }, [index, onChangeMusicSet, setValue]);
 
   const savedRsult = useCallback(() => {
     if (localStorage === undefined) return undefined;
@@ -122,6 +77,7 @@ const Create: NextPage = () => {
     },
     [localStorage, savedRsult, musicSet, instrument, displayMusicSet, router, name],
   );
+  if (Object.keys(index).length === 0) return <></>;
   return (
     <>
       <h1 className='text-center'>{name} さんの乗り番入力</h1>
@@ -130,7 +86,7 @@ const Create: NextPage = () => {
           className='form-select'
           aria-label='musicSet'
           {...register('musicSet', {
-            onChange: () => setValue('instrument', ''),
+            onChange: (e) => onChangeMusicSet(e.target.value),
           })}
         >
           {musicSeTitletList.map((t) => (
@@ -144,6 +100,7 @@ const Create: NextPage = () => {
           aria-label='instrument'
           {...register('instrument', {
             onChange: (e) => {
+              setDisplayMusicSet(master[musicSet][e.target.value]);
               const result = savedRsult();
               if (result === undefined) return;
               if (
